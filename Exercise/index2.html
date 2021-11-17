@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>joint plot</title>
+
+    <script src="scatter_plot.js?2"></script>
+    <script src="bar_plot.js?2"></script>
+
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+        .fig{
+            fill: #faf8f8;
+        }
+        table{
+            border: 1px solid #d2bcbc;
+            border-collapse: collapse;
+            width: 40vw;
+        }
+        td{
+            border: 1px solid #d2bcbc;
+            border-collapse: collapse;
+            padding: 10px;
+            width: 10vw;
+        }
+    </style>
+    <script src="../lib/d3.js"></script>
+    <!-- <button onclick="update(speciesName='Chinstrap')">jointplot1</button> -->
+
+
+</head>
+<body>
+    <button onclick="update(speciesName='Chinstrap')">jointplot1</button>
+    <button onclick="update1(speciesName='Adelie')">jointplot2</button>
+
+    
+    <!-- <div id="option">
+        <input name="updateButton" 
+               type="button" 
+               value="update" 
+               onclick="update('Adelie')" />
+    </div> -->
+    <!-- <div id="option">
+        <input name="updateButton1" 
+               type="button" 
+               value="update1" 
+               onclick="update1('Adelie')" />
+    </div> -->
+<!-- https://seaborn.pydata.org/generated/seaborn.jointplot.html -->
+<!--palmer_penguin_species: https://raw.githubusercontent.com/datavizpyr/data/master/palmer_penguin_species.tsv -->
+<table>
+    <tr>
+        <td><svg width="500px" height="150px"  id="top"></svg></td>
+        <td width="10%">&nbsp</td>
+    </tr>
+    <tr>
+        <td><svg width="500px" height="500px" viewBox="0 0 1000 1000" id="main"></svg></td>
+        <td><svg width="150px" height="500px" id="right"></svg></td>
+        
+    </tr>
+</table>
+<table>
+    <tr>
+        <td><svg width="500px" height="150px"  id="top1"></svg></td>
+        <td width="10%">&nbsp</td>
+    </tr>
+    <tr>
+        <td><svg width="500px" height="500px" viewBox="0 0 1000 1000" id="main1"></svg></td>
+        <td><svg width="150px" height="500px" id="right1"></svg></td>
+        
+    </tr>
+</table>
+<table>
+    <tr>
+        <td><svg width="500px" height="150px"  id="top2"></svg></td>
+        <td width="10%">&nbsp</td>
+    </tr>
+    <tr>
+        <td><svg width="500px" height="500px" viewBox="0 0 1000 1000" id="main2"></svg></td>
+        <td><svg width="150px" height="500px" id="right2"></svg></td>
+        
+    </tr>
+</table>
+
+<script>
+    let palmer_penguin_species = "../data/palmer_penguin_species.tsv";
+    // loading data
+    d3.tsv(palmer_penguin_species).then(main)
+
+    let islands = ["Torgersen", "Biscoe", "Dream"]
+    let classic_colors = ["#440154", "#21908dff", "#3d5a80"]
+    // Subplots
+    let fig_main = d3.select("#main")
+        .append("g")
+        .append('rect')
+        .attr("class","fig")
+        .attr("width","100%")
+        .attr("height","100%")
+    // top svg
+    let fig_top = d3.select("#top")
+        .append("g")
+        .append('rect')
+        .attr("class","fig")
+        .attr("width","100%")
+        .attr("height","100%")
+    // right svg
+    let fig_right = d3.select("#right")
+        .append("g")
+        .append('rect')
+        .attr("class","fig")
+        .attr("width","100%")
+        .attr("height","100%")
+
+    function main(data){
+       
+        function species_data(dataset,speciesName="Adelie"){
+            return dataset.filter(d=>d.species===speciesName);
+        }
+        ad=species_data(data,speciesName="Gentoo")
+        let island_ad=d3.map(ad,function(d){return d.island})
+        let culmen_length_mm1=d3.map(ad,function(d){return +d.culmen_length_mm})
+        let culmen_depth_mm1=d3.map(ad,function(d){return +d.culmen_depth_mm})
+        let flipper_length_mm1=d3.map(ad,function(d){return +d.flipper_length_mm})
+        //console.log(island_ad)
+        let island_types = new Set(island_ad)
+        let array = Array.from(island_types);
+
+        let island_code = d3.map(ad,function (d) {
+            island1 = d.island
+            if (island1 === "Torgersen") {
+                return 0
+            } else if (island1 === "Biscoe") {
+                return 1
+            } else {
+                return 2
+            }
+        })
+        
+
+
+        // main svg
+        scatter_plot(culmen_length_mm1,
+            culmen_depth_mm1,
+            flipper_length_mm1,
+            island_code,
+            colorscale=classic_colors,
+            'main'
+            ,title='Gentoo',
+            xLabel="culmen_length_mm",
+            yLabel="culmen_depth_mm",
+            legend=array,
+            legendcolors=["#3d5a80"]
+            );
+        
+        bar_plot(culmen_length_mm1, 10,'top')
+        h_bar_plot(culmen_depth_mm1,10,'right')
+    }
+    function update(speciesName){
+        d3.tsv(palmer_penguin_species).then(data=>{
+            ad1=data.filter(d=>d.species===speciesName)
+        })
+        //ad1=species_data(data,speciesName="Chinstrap")
+        let island_ad1=d3.map(ad1,function(d){return d.island})
+        let culmen_length_mm2=d3.map(ad1,function(d){return +d.culmen_length_mm})
+        let culmen_depth_mm2=d3.map(ad1,function(d){return +d.culmen_depth_mm})
+        let flipper_length_mm2=d3.map(ad1,function(d){return +d.flipper_length_mm})
+        //console.log(island_ad)
+        let island_types1 = new Set(island_ad1)
+        let array1 = Array.from(island_types1);
+
+        let island_code1 = d3.map(ad1,function (d) {
+            island2 = d.island
+            if (island2 === "Torgersen") {
+                return 0
+            } else if (island2 === "Biscoe") {
+                return 1
+            } else {
+                return 2
+            }
+        })
+    
+
+        scatter_plot(culmen_length_mm2,
+            culmen_depth_mm2,
+            flipper_length_mm2,
+            island_code1,
+            colorscale=classic_colors,
+            'main1'
+            ,title='Chinstrap',
+            xLabel="culmen_length_mm",
+            yLabel="culmen_depth_mm",
+            legend=array1,
+            legendcolors=["#3d5a80"]
+            );
+        
+        bar_plot(culmen_length_mm2, 10,'top1')
+        h_bar_plot(culmen_depth_mm2,10,'right1')
+    }
+    function update1(speciesName){
+        d3.tsv(palmer_penguin_species).then(data=>{
+            ad2=data.filter(d=>d.species===speciesName)
+        })
+        let island_ad2=d3.map(ad2,function(d){return d.island})
+        let culmen_length_mm3=d3.map(ad2,function(d){return +d.culmen_length_mm})
+        let culmen_depth_mm3=d3.map(ad2,function(d){return +d.culmen_depth_mm})
+        let flipper_length_mm3=d3.map(ad2,function(d){return +d.flipper_length_mm})
+        //console.log(island_ad)
+        let island_types2 = new Set(island_ad2)
+        //console.log(island_types2)
+
+        let island_code2 = d3.map(ad2,function (d) {
+            island3 = d.island
+            if (island3 === "Torgersen") {
+                return 0
+            } else if (island3 === "Biscoe") {
+                return 1
+            } else {
+                return 2
+            }
+        })
+        
+        scatter_plot(culmen_length_mm3,
+            culmen_depth_mm3,
+            flipper_length_mm3,
+            island_code2,
+            colorscale=classic_colors,
+            'main2'
+            ,title='Adelie',
+            xLabel="culmen_length_mm",
+            yLabel="culmen_depth_mm",
+            legend=islands,
+            legendcolors=classic_colors
+            );
+        
+        bar_plot(culmen_length_mm3, 10,'top2')
+        h_bar_plot(culmen_depth_mm3,10,'right2')
+
+        
+    }
+
+
+</script>
+
+</body>
+</html>
